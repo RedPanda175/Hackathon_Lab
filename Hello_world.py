@@ -1,0 +1,1 @@
+print("Tell Naty to go fuck hemself")
