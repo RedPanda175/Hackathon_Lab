@@ -1,26 +1,31 @@
 import socket
 import threading
+import time
 
 
-def handle_client_connection():
+def handle_client_connection(ip, port):
     print("handle_client_connection")
+    print("ip - " + ip)
+    print("port - " + str(port))
 
 
 bind_ip = "127.0.0.1"
 bind_port = 13117
 bufferSize = 2048
-max_clients = 4
+max_clients = 2
 print("Server started, listening on IP address - " + bind_ip)
 
-msgFromServer = "Hello UDP Client"
+msgFromServer = "Welcome to Tomer & Elad game!"
 bytesToSend = str.encode(msgFromServer)
-serverSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-serverSocket.bind((bind_ip, bind_port))
+UDP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+UDP_server_socket.bind((bind_ip, bind_port))
 
+future = time.time() + 10
 clients_address = []
-while len(clients_address) < max_clients:
-    message, clientAddress = serverSocket.recvfrom(bufferSize)
-    clients_address.apped(clientAddress)
-    client_handler = threading.Thread(target=handle_client_connection)
+while time.time() < future:
+    message, clientAddress = UDP_server_socket.recvfrom(bufferSize)
+    print(clientAddress)
+    clients_address.append(clientAddress)
+    UDP_server_socket.sendto(bytesToSend, clientAddress)
+    client_handler = threading.Thread(target=handle_client_connection, args=clientAddress)
     client_handler.start()
-    #serverSocket.sendto(bytesToSend, clientAddress)
