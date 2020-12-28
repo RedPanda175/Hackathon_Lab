@@ -84,8 +84,8 @@ def udp_server():
 
 client_handler = threading.Thread(target=udp_server)
 client_handler.start()
-client_handler = threading.Thread(target=main_tcp_funk)
-client_handler.start()
+client_handler2 = threading.Thread(target=main_tcp_funk)
+client_handler2.start()
 time.sleep(20)
 print("Players: ")
 for key in all_teams:

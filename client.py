@@ -1,5 +1,5 @@
 import socket
-
+print("this is it")
 serverAddressPort = ("127.0.0.1", 13117)
 bufferSize = 2048
 print("Client started, listening for offer requests...")
@@ -27,6 +27,9 @@ if resv_message[:8] == "feedbeef":
     tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_client_socket.connect(serverAddress)
     tcp_client_socket.send(str.encode("team rokets port {}\n".format(udp_port)))
+    #the problem is that we are trying to connect to the master TCP server port, and not to the address we get from this tcp server.
+    #the proccess should be:  wait for UDP -> rcv offer -> connect to master TCP -> rcv address to connect -> connect to address
+    # -> send msg to address
     message = tcp_client_socket.recv(bufferSize)
     message = message.decode("utf-8")
     print(message)
