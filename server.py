@@ -14,7 +14,7 @@ def main_tcp_funk():
     tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     tcp_server_socket.bind((bind_ip, bind_port))
     tcp_server_socket.listen(1)
-    tcp_server_socket.settimeout(1)
+    tcp_server_socket.settimeout(0)
     i = 0
     future = time.time() + 15
 
@@ -48,6 +48,7 @@ def recv_name(connected_socket):
     message = connected_socket.recv(2048)
     message = message.decode("utf-8")
     print(message)
+    print("boo")
     all_teams[message] = connected_socket
 
 
@@ -61,7 +62,7 @@ def udp_server():
     bind_ip = "127.0.0.1"
     bind_port = 13117
     print("Server started, listening on IP address - " + bind_ip)
-
+    print("hi")
     udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
     # Enable broadcasting mode
     udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -84,9 +85,26 @@ def udp_server():
 
 client_handler = threading.Thread(target=udp_server)
 client_handler.start()
-client_handler2 = threading.Thread(target=main_tcp_funk)
+client_handler2 = threading.Thread(target=TCP_Main_Listener)
 client_handler2.start()
 time.sleep(20)
 print("Players: ")
 for key in all_teams:
     print(key)
+
+
+
+
+def TCP_Main_Listener():
+    bind_ip = "127.0.0.1"
+    bind_port = 9999
+
+    tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+    tcp_server_socket.bind((bind_ip, bind_port))
+    while True:
+        try:
+            connected_socket, address = tcp_server_socket.accept()
+            thread_funk = threading.Thread(target=recv_name, args=(connected_socket,))
+            thread_funk.start()
+        except:
+            continue
