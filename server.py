@@ -16,7 +16,7 @@ def main_tcp_funk():
     tcp_server_socket.listen(1)
     tcp_server_socket.settimeout(1)
     i = 0
-    future = time.time() + 10
+    future = time.time() + 15
 
     while time.time() < future:
         try:
@@ -64,6 +64,7 @@ def udp_server():
 
     udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
     # Enable broadcasting mode
+    udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     udp_server_socket.settimeout(30)
     # udp_server_socket.bind((bind_ip, bind_port))
@@ -73,7 +74,7 @@ def udp_server():
     bytes_to_send3 = bytes(0x9999)
 
     count_time = 0
-    while count_time < 10:
+    while count_time < 15:
         udp_server_socket.sendto(bytes_to_send1, (bind_ip, bind_port))
         time.sleep(1)
         count_time += 1

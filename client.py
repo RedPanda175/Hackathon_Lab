@@ -5,7 +5,7 @@ bufferSize = 2048
 print("Client started, listening for offer requests...")
 
 udp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
-#udp_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+udp_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 udp_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 udp_client_socket.bind(serverAddressPort)
 resv_message, serverAddress = udp_client_socket.recvfrom(bufferSize)
@@ -13,6 +13,11 @@ resv_message, serverAddress = udp_client_socket.recvfrom(bufferSize)
 print("Received offer from {} attempting to connect...".format(serverAddress[0]))
 udp_port = serverAddress[1]
 print(udp_port)
+print("\n")
+count = 0;
+while count < len(serverAddress):
+    print(serverAddress[count])
+    count += 1
 
 resv_message = resv_message.decode("utf-8")
 #resv_message = bytes.hex(resv_message)
