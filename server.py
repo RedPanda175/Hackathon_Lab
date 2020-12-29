@@ -5,10 +5,22 @@ from random import shuffle
 import struct
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 class Server:
     def __init__(self, ip):
         self.ip = ip
-        self.time_to_connect = 13
+        self.time_to_connect = 10
         self.all_teams = {}
         self.message_to_send_at_begin = ""
 
@@ -43,8 +55,6 @@ class Server:
         for player_name in team2:
             self.message_to_send_at_begin += player_name + "\n"
         self.message_to_send_at_begin += "Start pressing keys on your keyboard as fast as you can!!"
-        print("test test test")
-        print(self.message_to_send_at_begin)
         with condition:
             condition.notifyAll()
 
@@ -52,16 +62,14 @@ class Server:
         message = connected_socket.recv(2048)
         message = message.decode("utf-8")
         message = message[:-1] + str(len(self.all_teams))
-        print(message)
         self.all_teams[message] = connected_socket
         with cv:
             cv.wait()
-        # print(message)
         connected_socket.send(str.encode(self.message_to_send_at_begin))
 
     def udp_server(self):
         bind_port = 13117
-        print("Server started, listening on IP address - " + self.ip)
+        print(f"{bcolors.HEADER}Server started, listening on IP address - " + self.ip)
         udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         # Enable broadcasting mode
         udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

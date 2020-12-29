@@ -8,7 +8,7 @@ class Client:
 
     def udp_part(self):
         server_address_port = (self.ip, 13117)
-        buffer_size = 2048
+        buffer_size = 1024
         print("Client started, listening for offer requests...")
 
         udp_client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)  # UDP
@@ -20,22 +20,24 @@ class Client:
         print("Received offer from {} attempting to connect...".format(server_address[0]))
 
         receive_message = struct.unpack('IBH', receive_message)
-        magic_cookie = receive_message[0]
-        # message_type = receive_message[1]
-        tcp_port = 8473
+        magic_cookie = hex(receive_message[0])
+        message_type = hex(receive_message[1])
+        tcp_port = hex(receive_message[2])[2:]
+        print(tcp_port)
 
-        if magic_cookie == 4276993775:
+        if magic_cookie == '0xfeedbeef':
             self.tcp_part(tcp_port)
 
     def tcp_part(self, tcp_port):
         server_address = (self.ip, int(tcp_port))
         tcp_client_socket = socket(AF_INET, SOCK_STREAM)
+        print(server_address)
         tcp_client_socket.connect(server_address)
         tcp_client_socket.send(str.encode("team rocket\n"))
         # the problem is that we are trying to connect to the master TCP server port, and not to the address we get from this tcp server.
         # the process should be: wait for UDP -> rcv offer -> connect to master TCP -> rcv address to connect -> connect to address
         # -> send msg to address
-        message = tcp_client_socket.recv(1048)
+        message = tcp_client_socket.recv(1024)
         message = message.decode("utf-8")
         print(message)
 
