@@ -6,7 +6,7 @@ bufferSize = 2048
 print("Client started, listening for offer requests...")
 
 udp_client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)  # UDP
-# udp_client_socket.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
+udp_client_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 udp_client_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 udp_client_socket.bind(server_address_port)
 receive_message, server_address = udp_client_socket.recvfrom(bufferSize)
@@ -31,6 +31,7 @@ if magic_cookie == 4276993775:
     # the problem is that we are trying to connect to the master TCP server port, and not to the address we get from this tcp server.
     # the process should be: wait for UDP -> rcv offer -> connect to master TCP -> rcv address to connect -> connect to address
     # -> send msg to address
-    # message = tcp_client_socket.recv(bufferSize)
-    # message = message.decode("utf-8")
-    # print(message)
+    print("wait for msg")
+    message = tcp_client_socket.recv(bufferSize)
+    message = message.decode("utf-8")
+    print(message)

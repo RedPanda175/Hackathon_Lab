@@ -10,6 +10,7 @@ time_to_connect = 13
 
 def tcp_main_listener():
     global time_to_connect
+    global message_to_send_at_begin
     bind_ip = "127.0.0.1"
     bind_port = 8473
 
@@ -50,13 +51,14 @@ def tcp_main_listener():
 def recv_name(connected_socket, cv):
     global all_teams
     message = connected_socket.recv(2048)
-    message = message.decode("utf-8") + str(len(all_teams))
+    message = message.decode("utf-8")
+    message = message[:-1] + str(len(all_teams))
     print(message)
     all_teams[message] = connected_socket
     with cv:
         cv.wait()
-    print(message)
-    # connected_socket.send(str.encode("last msg"))
+    # print(message)
+    connected_socket.send(str.encode(message_to_send_at_begin))
 
 
 def handle_client(message, client_name):
@@ -72,7 +74,7 @@ def udp_server():
     print("Server started, listening on IP address - " + bind_ip)
     udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
     # Enable broadcasting mode
-    # udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     udp_server_socket.settimeout(time_to_connect)
     # udp_server_socket.bind((bind_ip, bind_port))
