@@ -3,6 +3,7 @@ import threading
 import time
 from random import shuffle
 import struct
+import operator
 
 
 class Server:
@@ -95,23 +96,26 @@ class Server:
                 ch = connected_socket.recv(1024)
             except:
                 continue
-            chars.append(ch.decode("utf-8"))
+            chars.append(list(ch.decode("utf-8")))
             print("recv from", message, ch.decode("utf-8"))
             time_pass = time.time() - start_time
             print(time_pass, 10 - time_pass)
             connected_socket.settimeout(10 - time_pass)
         print("finish recv")
         dict_chars = {}
-        for c in chars:
-            if c in dict_chars:
-                dict_chars[c] += 1
-            else:
-                dict_chars[c] = 0
+        for lst in chars:
+            for c in lst:
+                if c in dict_chars:
+                    dict_chars[c] += 1
+                else:
+                    dict_chars[c] = 1
         self.all_teams[message] = dict_chars
         print("put in main dict - ", dict_chars)
+        max_char = max(dict_chars.items(), key=operator.itemgetter(1))[0]
         with cv:
             cv.wait()
-        connected_socket.send(str.encode(self.end_message))
+        to_send = self.end_message + "\nYour most common char is - " + max_char
+        connected_socket.send(str.encode(to_send))
 
     def who_won(self):
         print("start calculate")

@@ -43,6 +43,8 @@ class Client:
         while future > time.time():
             print("send...")
             tcp_client_socket.send(str.encode("h"))
+            tcp_client_socket.send(str.encode("t"))
+            tcp_client_socket.send(str.encode("h"))
             time.sleep(0.5)
         message = tcp_client_socket.recv(1024)
         message = message.decode("utf-8")
