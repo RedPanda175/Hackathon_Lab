@@ -13,15 +13,17 @@ def tcp_main_listener():
     bind_ip = "127.0.0.1"
     bind_port = 8473
 
+    condition = threading.Condition()
+
     tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     tcp_server_socket.bind((bind_ip, bind_port))
     tcp_server_socket.settimeout(time_to_connect)
-    tcp_server_socket.listen(10)
+    tcp_server_socket.listen(1)
     start_time = time.time()
     while start_time + time_to_connect > time.time():
         try:
             connected_socket, address = tcp_server_socket.accept()
-            thread_funk = threading.Thread(target=recv_name, args=(connected_socket,))
+            thread_funk = threading.Thread(target=recv_name, args=(connected_socket, condition))
             thread_funk.start()
         except:
             if time_to_connect - time.time() + start_time > 0:
@@ -39,19 +41,22 @@ def tcp_main_listener():
     for player_name in team2:
         message_to_send_at_begin += player_name + "\n"
     message_to_send_at_begin += "Start pressing keys on your keyboard as fast as you can!!"
-    for player_name in all_teams_lst:
-        thread_funk = threading.Thread(target=handle_client, args=(message_to_send_at_begin, player_name))
-        thread_funk.start()
+    print("test test test")
     print(message_to_send_at_begin)
+    with condition:
+        condition.notifyAll()
 
 
-def recv_name(connected_socket):
+def recv_name(connected_socket, cv):
     global all_teams
     message = connected_socket.recv(2048)
     message = message.decode("utf-8") + str(len(all_teams))
     print(message)
-    connected_socket.send(str.encode("last msg"))
     all_teams[message] = connected_socket
+    with cv:
+        cv.wait()
+    print(message)
+    # connected_socket.send(str.encode("last msg"))
 
 
 def handle_client(message, client_name):
