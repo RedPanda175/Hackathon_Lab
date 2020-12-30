@@ -5,27 +5,28 @@ from random import shuffle
 import struct
 import operator
 
+
 class Colors:
-    CEND      = '\33[0m' #0
+    CEND = '\33[0m'  # 0
 
-    CBLACK  = '\33[30m' #1
-    CRED    = '\33[31m' #2
-    CGREEN  = '\33[32m' #3
-    CYELLOW = '\33[33m' #4
-    CBLUE   = '\33[34m' #5
-    CVIOLET = '\33[35m' #6
-    CBEIGE  = '\33[36m' #7
-    CWHITE  = '\33[37m' #8
+    CBLACK = '\33[30m'  # 1
+    CRED = '\33[31m'  # 2
+    CGREEN = '\33[32m'  # 3
+    CYELLOW = '\33[33m'  # 4
+    CBLUE = '\33[34m'  # 5
+    CVIOLET = '\33[35m'  # 6
+    CBEIGE = '\33[36m'  # 7
+    CWHITE = '\33[37m'  # 8
 
+    CGREY = '\33[90m'  # 9
+    CRED2 = '\33[91m'  # 10
+    CGREEN2 = '\33[92m'  # 11
+    CYELLOW2 = '\33[93m'  # 12
+    CBLUE2 = '\33[94m'  # 13
+    CVIOLET2 = '\33[95m'  # 14
+    CBEIGE2 = '\33[96m'  # 15
+    CWHITE2 = '\33[97m'  # 16
 
-    CGREY    = '\33[90m' #9
-    CRED2    = '\33[91m' #10
-    CGREEN2  = '\33[92m' #11
-    CYELLOW2 = '\33[93m' #12
-    CBLUE2   = '\33[94m' #13
-    CVIOLET2 = '\33[95m' #14
-    CBEIGE2  = '\33[96m' #15
-    CWHITE2  = '\33[97m' #16
 
 class Server:
     def __init__(self, ip):
@@ -40,7 +41,7 @@ class Server:
         self.tcp_port = 8473
         self.best_team = ("None", 0)
         self.lock_best_team = threading.Lock()
-        self.end_message = Colors.CRED+"Game over!\n"+ Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n"+ Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
+        self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
         self.end_message_part2 = "\nGroup {} wins!\n" + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
         self.end_message_draw = "\nIt's a draw!\n" + Colors.CYELLOW + "Congratulations to both teams!!!" + Colors.CEND
 
@@ -164,7 +165,8 @@ class Server:
         with cv:
             cv.wait()
         to_send = self.end_message + "\nYour most common char is - " + max_char
-        to_send += "\nThe beat team ever on this server is {} with {} points\n".format(self.best_team[0], self.best_team[1])
+        to_send += "\nThe beat team ever on this server is {} with {} points\n".format(self.best_team[0],
+                                                                                       self.best_team[1])
         try:
             connected_socket.send(str.encode(to_send))
         except:

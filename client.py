@@ -16,7 +16,9 @@ def getch():
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
     return _getch()
+
 
 class Client:
     def __init__(self, ip):
@@ -39,7 +41,8 @@ class Client:
                 print("error")
         receive_message, server_address = udp_client_socket.recvfrom(buffer_size)
         # udp_client_socket.close()
-        print(Colors.CYELLOW + "Received offer from {} attempting to connect...".format(server_address[0] + Colors.CEND))
+        print(
+            Colors.CYELLOW + "Received offer from {} attempting to connect...".format(server_address[0] + Colors.CEND))
 
         tcp_ip = server_address[0]
         receive_message = struct.unpack('IBH', receive_message)
