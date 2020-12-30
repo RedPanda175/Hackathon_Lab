@@ -35,6 +35,7 @@ class Client:
         did_bind = False
         while not did_bind:
             try:
+                time.sleep(0.1)
                 udp_client_socket.bind(server_address_port)
                 did_bind = True
             except:
@@ -60,6 +61,7 @@ class Client:
         did_connect = False
         while not did_connect:
             try:
+                time.sleep(0.1)
                 tcp_client_socket.connect(server_address)
                 did_connect = True
             except:

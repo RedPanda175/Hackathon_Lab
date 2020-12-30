@@ -54,6 +54,7 @@ class Server:
         did_bind = False
         while not did_bind:
             try:
+                time.sleep(0.1)
                 tcp_server_socket.bind(('', 0))
                 did_bind = True
             except:
