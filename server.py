@@ -112,6 +112,7 @@ class Server:
             condition.notifyAll()
         for my_tread in all_threads:
             my_tread.join()
+        print(colors.CRED + "Game over, sending out offer requests..." + colors.CEND)
         self.main_server()
 
     def handle_client(self, connected_socket, cv):
