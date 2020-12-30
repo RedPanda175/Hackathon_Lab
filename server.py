@@ -7,7 +7,7 @@ import operator
 
 class colors:
     CEND      = '\33[0m' #0
-    
+
     CBLACK  = '\33[30m' #1
     CRED    = '\33[31m' #2
     CGREEN  = '\33[32m' #3
@@ -17,7 +17,7 @@ class colors:
     CBEIGE  = '\33[36m' #7
     CWHITE  = '\33[37m' #8
 
-   
+
     CGREY    = '\33[90m' #9
     CRED2    = '\33[91m' #10
     CGREEN2  = '\33[92m' #11
@@ -38,16 +38,25 @@ class Server:
         self.team1_points = 0
         self.team2_points = 0
         self.tcp_port = 8473
+        self.best_team = ("None", 0)
+        self.lock_best_team = threading.Lock()
         self.end_message = colors.CRED+"Game over!\n"+colors.CEND + colors.CGREEN + "Group 1 typed in {} characters.\n"+ colors.CEND + colors.CBLUE + "Group 2 typed in {} characters."+colors.CEND
         self.end_message_part2 = "\nGroup {} wins!\n" + colors.CYELLOW + "Congratulations to the winners:\n==\n==" + colors.CEND
         self.end_message_draw = "\nIt's a draw!\n" + colors.CYELLOW + "Congratulations to both teams!!!" + colors.CEND
 
     def tcp_main_listener(self):
         condition = threading.Condition()
+        all_threads = []
 
         tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        tcp_server_socket.bind(('', 0))
+        did_bind = False
+        while not did_bind:
+            try:
+                tcp_server_socket.bind(('', 0))
+                did_bind = True
+            except:
+                print("error")
         self.tcp_port = tcp_server_socket.getsockname()[1]
         tcp_server_socket.settimeout(self.time_to_connect)
         tcp_server_socket.listen(17)
@@ -58,6 +67,7 @@ class Server:
                 print(address)
                 thread_funk = threading.Thread(target=self.handle_client, args=(connected_socket, condition))
                 thread_funk.start()
+                all_threads.append(thread_funk)
             except:
                 if self.time_to_connect - time.time() + start_time > 0:
                     tcp_server_socket.settimeout(self.time_to_connect - time.time() + start_time)
@@ -100,17 +110,28 @@ class Server:
         print(2, self.team2_points)
         with condition:
             condition.notifyAll()
+        for my_tread in all_threads:
+            my_tread.join()
+        self.main_server()
 
     def handle_client(self, connected_socket, cv):
-        message = connected_socket.recv(2048)
+        try:
+            message = connected_socket.recv(2048)
+        except:
+            print("error")
         message = message.decode("utf-8")
-        message = message[:-1] + str(len(self.all_teams))
+        if message in self.all_teams:
+            message = message[:-1] + str(len(self.all_teams))
+        message = message[:-1]
         self.all_teams[message] = {}
         print(message)
         with cv:
             cv.wait()
         chars = []
-        connected_socket.send(str.encode(self.message_to_send_at_begin))
+        try:
+            connected_socket.send(str.encode(self.message_to_send_at_begin))
+        except:
+            print("error")
         connected_socket.settimeout(10)
         start_time = time.time()
         future = time.time() + 10
@@ -131,11 +152,22 @@ class Server:
                     dict_chars[c] = 1
         self.all_teams[message] = dict_chars
         print("put in main dict - ", dict_chars)
-        max_char = max(dict_chars.items(), key=operator.itemgetter(1))[0]
+        if dict_chars == {}:
+            max_char = "None"
+        else:
+            max_char = max(dict_chars.items(), key=operator.itemgetter(1))[0]
+        self.lock_best_team.acquire()
+        if self.best_team[1] < len(chars):
+            self.best_team = (message, len(chars))
+        self.lock_best_team.release()
         with cv:
             cv.wait()
         to_send = self.end_message + "\nYour most common char is - " + max_char
-        connected_socket.send(str.encode(to_send))
+        to_send += "\nThe beat team ever on this server is {} with {} points\n".format(self.best_team[0], self.best_team[1])
+        try:
+            connected_socket.send(str.encode(to_send))
+        except:
+            print("error")
 
     def who_won(self):
         print("start calculate")
@@ -160,7 +192,7 @@ class Server:
 
         count_time = 0
         while count_time < self.time_to_connect:
-            udp_server_socket.sendto(message, (self.ip, 13124))
+            udp_server_socket.sendto(message, (self.ip, 13125))
             time.sleep(1)
             count_time += 1
             print(count_time)
