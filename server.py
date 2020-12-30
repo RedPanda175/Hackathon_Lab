@@ -6,40 +6,26 @@ import struct
 import operator
 
 class colors:
-    CEND      = '\33[0m'
-    CBOLD     = '\33[1m'
-    CITALIC   = '\33[3m'
-    CURL      = '\33[4m'
-    CBLINK    = '\33[5m'
-    CBLINK2   = '\33[6m'
-    CSELECTED = '\33[7m'
+    CEND      = '\33[0m' #0
+    
+    CBLACK  = '\33[30m' #1
+    CRED    = '\33[31m' #2
+    CGREEN  = '\33[32m' #3
+    CYELLOW = '\33[33m' #4
+    CBLUE   = '\33[34m' #5
+    CVIOLET = '\33[35m' #6
+    CBEIGE  = '\33[36m' #7
+    CWHITE  = '\33[37m' #8
 
-    CBLACK  = '\33[30m'
-    CRED    = '\33[31m'
-    CGREEN  = '\33[32m'
-    CYELLOW = '\33[33m'
-    CBLUE   = '\33[34m'
-    CVIOLET = '\33[35m'
-    CBEIGE  = '\33[36m'
-    CWHITE  = '\33[37m'
-
-    CBLACKBG  = '\33[40m'
-    CREDBG    = '\33[41m'
-    CGREENBG  = '\33[42m'
-    CYELLOWBG = '\33[43m'
-    CBLUEBG   = '\33[44m'
-    CVIOLETBG = '\33[45m'
-    CBEIGEBG  = '\33[46m'
-    CWHITEBG  = '\33[47m'
-
-    CGREY    = '\33[90m'
-    CRED2    = '\33[91m'
-    CGREEN2  = '\33[92m'
-    CYELLOW2 = '\33[93m'
-    CBLUE2   = '\33[94m'
-    CVIOLET2 = '\33[95m'
-    CBEIGE2  = '\33[96m'
-    CWHITE2  = '\33[97m'
+   
+    CGREY    = '\33[90m' #9
+    CRED2    = '\33[91m' #10
+    CGREEN2  = '\33[92m' #11
+    CYELLOW2 = '\33[93m' #12
+    CBLUE2   = '\33[94m' #13
+    CVIOLET2 = '\33[95m' #14
+    CBEIGE2  = '\33[96m' #15
+    CWHITE2  = '\33[97m' #16
 
 class Server:
     def __init__(self, ip):
@@ -52,7 +38,7 @@ class Server:
         self.team1_points = 0
         self.team2_points = 0
         self.tcp_port = 8473
-        self.end_message = "Game over!\nGroup 1 typed in {} characters. Group 2 typed in {} characters."
+        self.end_message = colors.CRED+"Game over!\n"+colors.CEND + colors.CGREEN + "Group 1 typed in {} characters.\n"+ colors.CEND + colors.CBLUE + "Group 2 typed in {} characters."+colors.CEND
         self.end_message_part2 = "\nGroup {} wins!\nCongratulations to the winners:\n==\n=="
         self.end_message_draw = "\nIt's a draw!\nCongratulations to both teams!!!"
 
@@ -69,7 +55,7 @@ class Server:
         while start_time + self.time_to_connect > time.time():
             try:
                 connected_socket, address = tcp_server_socket.accept()
-                print(colors.CYELLOW+address)
+                print(address)
                 thread_funk = threading.Thread(target=self.handle_client, args=(connected_socket, condition))
                 thread_funk.start()
             except:
@@ -161,7 +147,7 @@ class Server:
                 self.team2_points += self.all_teams[team][c]
 
     def udp_server(self):
-        print("Server started, listening on IP address - " + self.ip)
+        print(colors.CYELLOW + "Server started, listening on IP address - " + colors.CEND + self.ip)
         udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         # Enable broadcasting mode
         udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
