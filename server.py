@@ -202,6 +202,9 @@ class Server:
         self.team2 = []
         self.team1_points = 0
         self.team2_points = 0
+        self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
+        self.end_message_part2 = "\nGroup {} wins!\n" + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
+        self.end_message_draw = "\nIt's a draw!\n" + Colors.CYELLOW + "Congratulations to both teams!!!" + Colors.CEND
         client_handler2 = threading.Thread(target=self.tcp_main_listener)
         client_handler2.start()
         client_handler = threading.Thread(target=self.udp_server)
