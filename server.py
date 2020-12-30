@@ -16,29 +16,32 @@ class Server:
         self.team2 = []
         self.team1_points = 0
         self.team2_points = 0
+        self.tcp_port = 8473
         self.end_message = "Game over!\nGroup 1 typed in {} characters. Group 2 typed in {} characters."
-        self.end_message_part2 = "\nGroup {} wins!\n Congratulations to the winners:\n==\n=="
+        self.end_message_part2 = "\nGroup {} wins!\nCongratulations to the winners:\n==\n=="
         self.end_message_draw = "\nIt's a draw!\nCongratulations to both teams!!!"
 
     def tcp_main_listener(self):
-        bind_port = 8473
-
         condition = threading.Condition()
 
         tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        tcp_server_socket.bind((self.ip, bind_port))
+        tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        tcp_server_socket.bind(('', 0))
+        self.tcp_port = tcp_server_socket.getsockname()[1]
         tcp_server_socket.settimeout(self.time_to_connect)
         tcp_server_socket.listen(17)
         start_time = time.time()
         while start_time + self.time_to_connect > time.time():
             try:
                 connected_socket, address = tcp_server_socket.accept()
+                print(address)
                 thread_funk = threading.Thread(target=self.handle_client, args=(connected_socket, condition))
                 thread_funk.start()
             except:
                 if self.time_to_connect - time.time() + start_time > 0:
                     tcp_server_socket.settimeout(self.time_to_connect - time.time() + start_time)
                 continue
+        print("time - ", time.time() - start_time)
 
         all_teams_lst = list(self.all_teams.keys())
         shuffle(all_teams_lst)
@@ -50,7 +53,7 @@ class Server:
         self.message_to_send_at_begin += "\nGroup 2:\n"
         for player_name in self.team2:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += "Start pressing keys on your keyboard as fast as you can!!"
+        self.message_to_send_at_begin += "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!"
 
         with condition:
             condition.notifyAll()
@@ -86,7 +89,6 @@ class Server:
         with cv:
             cv.wait()
         chars = []
-        print("start to recv")
         connected_socket.send(str.encode(self.message_to_send_at_begin))
         connected_socket.settimeout(10)
         start_time = time.time()
@@ -97,11 +99,8 @@ class Server:
             except:
                 continue
             chars.append(list(ch.decode("utf-8")))
-            print("recv from", message, ch.decode("utf-8"))
             time_pass = time.time() - start_time
-            print(time_pass, 10 - time_pass)
             connected_socket.settimeout(10 - time_pass)
-        print("finish recv")
         dict_chars = {}
         for lst in chars:
             for c in lst:
@@ -127,35 +126,37 @@ class Server:
                 self.team2_points += self.all_teams[team][c]
 
     def udp_server(self):
-        bind_port = 13117
         print("Server started, listening on IP address - " + self.ip)
         udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         # Enable broadcasting mode
         udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         udp_server_socket.settimeout(self.time_to_connect)
-        # udp_server_socket.bind((self.ip, bind_port))
-        # bytesToSend1 = bytes(0xfeedbeef)
+
         magic_cookie = 0xfeedbeef
         message_type = 0x2
-        server_tcp_port = 0x8473
-        message = struct.pack('IBH', magic_cookie, message_type, server_tcp_port)
+        message = struct.pack('IBH', magic_cookie, message_type, self.tcp_port)
 
         count_time = 0
         while count_time < self.time_to_connect:
-            udp_server_socket.sendto(message, (self.ip, bind_port))
+            udp_server_socket.sendto(message, (self.ip, 13124))
             time.sleep(1)
             count_time += 1
             print(count_time)
         print("No more players for know")
 
     def main_server(self):
-        client_handler = threading.Thread(target=self.udp_server)
-        client_handler.start()
+        self.all_teams = {}
+        self.message_to_send_at_begin = ""
+        self.team1 = []
+        self.team2 = []
+        self.team1_points = 0
+        self.team2_points = 0
         client_handler2 = threading.Thread(target=self.tcp_main_listener)
         client_handler2.start()
-        time.sleep(self.time_to_connect + 3)
+        client_handler = threading.Thread(target=self.udp_server)
+        client_handler.start()
 
 
-s1 = Server('127.0.0.1')
+s1 = Server("<broadcast>")
 s1.main_server()
