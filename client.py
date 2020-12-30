@@ -25,7 +25,7 @@ class Client:
         self.ip = ip
 
     def udp_part(self):
-        server_address_port = (self.ip, 13125)
+        server_address_port = (self.ip, 13117)
         buffer_size = 1024
         print(Colors.CBLUE + "Client started, listening for offer requests..." + Colors.CEND)
 

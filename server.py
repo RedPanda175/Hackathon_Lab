@@ -31,7 +31,7 @@ class Colors:
 class Server:
     def __init__(self, ip):
         self.ip = ip
-        self.time_to_connect = 20
+        self.time_to_connect = 10
         self.all_teams = {}
         self.message_to_send_at_begin = ""
         self.team1 = []
@@ -65,7 +65,6 @@ class Server:
         while start_time + self.time_to_connect > time.time():
             try:
                 connected_socket, address = tcp_server_socket.accept()
-                print(address)
                 thread_funk = threading.Thread(target=self.handle_client, args=(connected_socket, condition))
                 thread_funk.start()
                 all_threads.append(thread_funk)
@@ -73,7 +72,6 @@ class Server:
                 if self.time_to_connect - time.time() + start_time > 0:
                     tcp_server_socket.settimeout(self.time_to_connect - time.time() + start_time)
                 continue
-        print("time - ", time.time() - start_time)
 
         all_teams_lst = list(self.all_teams.keys())
         shuffle(all_teams_lst)
@@ -107,8 +105,6 @@ class Server:
                 self.end_message += "\n" + name
 
         print(self.end_message)
-        print(1, self.team1_points)
-        print(2, self.team2_points)
         with condition:
             condition.notifyAll()
         for my_tread in all_threads:
@@ -117,6 +113,7 @@ class Server:
         self.main_server()
 
     def handle_client(self, connected_socket, cv):
+        message = ""
         try:
             message = connected_socket.recv(2048)
         except:
@@ -126,7 +123,6 @@ class Server:
             message = message[:-1] + str(len(self.all_teams))
         message = message[:-1]
         self.all_teams[message] = {}
-        print(message)
         with cv:
             cv.wait()
         chars = []
@@ -153,7 +149,6 @@ class Server:
                 else:
                     dict_chars[c] = 1
         self.all_teams[message] = dict_chars
-        print("put in main dict - ", dict_chars)
         if dict_chars == {}:
             max_char = "None"
         else:
@@ -173,7 +168,6 @@ class Server:
             print("error")
 
     def who_won(self):
-        print("start calculate")
         for team in self.team1:
             for c in self.all_teams[team]:
                 self.team1_points += self.all_teams[team][c]
@@ -195,10 +189,9 @@ class Server:
 
         count_time = 0
         while count_time < self.time_to_connect:
-            udp_server_socket.sendto(message, (self.ip, 13125))
+            udp_server_socket.sendto(message, (self.ip, 13117))
             time.sleep(1)
             count_time += 1
-            print(count_time)
         print("No more players for know")
 
     def main_server(self):
