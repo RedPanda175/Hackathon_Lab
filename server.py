@@ -39,8 +39,8 @@ class Server:
         self.team2_points = 0
         self.tcp_port = 8473
         self.end_message = colors.CRED+"Game over!\n"+colors.CEND + colors.CGREEN + "Group 1 typed in {} characters.\n"+ colors.CEND + colors.CBLUE + "Group 2 typed in {} characters."+colors.CEND
-        self.end_message_part2 = "\nGroup {} wins!\nCongratulations to the winners:\n==\n=="
-        self.end_message_draw = "\nIt's a draw!\nCongratulations to both teams!!!"
+        self.end_message_part2 = "\nGroup {} wins!\n" + colors.CYELLOW + "Congratulations to the winners:\n==\n==" + colors.CEND
+        self.end_message_draw = "\nIt's a draw!\n" + colors.CYELLOW + "Congratulations to both teams!!!" + colors.CEND
 
     def tcp_main_listener(self):
         condition = threading.Condition()
@@ -68,13 +68,13 @@ class Server:
         shuffle(all_teams_lst)
         self.team1 = all_teams_lst[:len(all_teams_lst) // 2]
         self.team2 = all_teams_lst[len(all_teams_lst) // 2:]
-        self.message_to_send_at_begin = "Welcome to Keyboard Spamming Battle Royale.\nGroup 1:\n"
+        self.message_to_send_at_begin = colors.CVIOLET + "Welcome to Keyboard Spamming Battle Royale.\n" + colors.CEND + colors.CGREEN + "Group 1:\n" +colors.CEND
         for player_name in self.team1:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += "\nGroup 2:\n"
+        self.message_to_send_at_begin += colors.CBLUE + "\nGroup 2:\n" + colors.CEND
         for player_name in self.team2:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!"
+        self.message_to_send_at_begin += colors.CYELLOW + "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!" + colors.CEND
 
         with condition:
             condition.notifyAll()
