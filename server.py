@@ -5,7 +5,7 @@ from random import shuffle
 import struct
 import operator
 
-class colors:
+class Colors:
     CEND      = '\33[0m' #0
 
     CBLACK  = '\33[30m' #1
@@ -40,9 +40,9 @@ class Server:
         self.tcp_port = 8473
         self.best_team = ("None", 0)
         self.lock_best_team = threading.Lock()
-        self.end_message = colors.CRED+"Game over!\n"+colors.CEND + colors.CGREEN + "Group 1 typed in {} characters.\n"+ colors.CEND + colors.CBLUE + "Group 2 typed in {} characters."+colors.CEND
-        self.end_message_part2 = "\nGroup {} wins!\n" + colors.CYELLOW + "Congratulations to the winners:\n==\n==" + colors.CEND
-        self.end_message_draw = "\nIt's a draw!\n" + colors.CYELLOW + "Congratulations to both teams!!!" + colors.CEND
+        self.end_message = Colors.CRED+"Game over!\n"+ Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n"+ Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
+        self.end_message_part2 = "\nGroup {} wins!\n" + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
+        self.end_message_draw = "\nIt's a draw!\n" + Colors.CYELLOW + "Congratulations to both teams!!!" + Colors.CEND
 
     def tcp_main_listener(self):
         condition = threading.Condition()
@@ -78,13 +78,13 @@ class Server:
         shuffle(all_teams_lst)
         self.team1 = all_teams_lst[:len(all_teams_lst) // 2]
         self.team2 = all_teams_lst[len(all_teams_lst) // 2:]
-        self.message_to_send_at_begin = colors.CVIOLET + "Welcome to Keyboard Spamming Battle Royale.\n" + colors.CEND + colors.CGREEN + "Group 1:\n" +colors.CEND
+        self.message_to_send_at_begin = Colors.CVIOLET + "Welcome to Keyboard Spamming Battle Royale.\n" + Colors.CEND + Colors.CGREEN + "Group 1:\n" + Colors.CEND
         for player_name in self.team1:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += colors.CBLUE + "\nGroup 2:\n" + colors.CEND
+        self.message_to_send_at_begin += Colors.CBLUE + "\nGroup 2:\n" + Colors.CEND
         for player_name in self.team2:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += colors.CYELLOW + "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!" + colors.CEND
+        self.message_to_send_at_begin += Colors.CYELLOW + "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!" + Colors.CEND
 
         with condition:
             condition.notifyAll()
@@ -112,7 +112,7 @@ class Server:
             condition.notifyAll()
         for my_tread in all_threads:
             my_tread.join()
-        print(colors.CRED + "Game over, sending out offer requests..." + colors.CEND)
+        print(Colors.CRED + "Game over, sending out offer requests..." + Colors.CEND)
         self.main_server()
 
     def handle_client(self, connected_socket, cv):
@@ -180,7 +180,7 @@ class Server:
                 self.team2_points += self.all_teams[team][c]
 
     def udp_server(self):
-        print(colors.CYELLOW + "Server started, listening on IP address - " + colors.CEND + self.ip)
+        print(Colors.CYELLOW + "Server started, listening on IP address - " + Colors.CEND + self.ip)
         udp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         # Enable broadcasting mode
         udp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
