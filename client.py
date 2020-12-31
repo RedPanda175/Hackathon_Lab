@@ -46,43 +46,57 @@ class Client:
 
         # organize recv data
         tcp_ip = server_address[0]
-        receive_message = struct.unpack('IBH', receive_message)
-        magic_cookie = hex(receive_message[0])
-        tcp_port = hex(receive_message[2])
-        tcp_port = int(tcp_port, 16)
+        to_continue = True
+        try:
+            receive_message = struct.unpack('IBH', receive_message)
+        except:
+            print("try different server")
+            time.sleep(0.5)
+            self.udp_part(counter + 1)
+            to_continue = False
+        if to_continue:
+            magic_cookie = hex(receive_message[0])
+            tcp_port = hex(receive_message[2])
+            tcp_port = int(tcp_port, 16)
 
-        if magic_cookie == '0xfeedbeef':
-            self.tcp_part(tcp_port, tcp_ip, counter)
+            if magic_cookie == '0xfeedbeef':
+                self.tcp_part(tcp_port, tcp_ip, counter)
 
     def tcp_part(self, tcp_port, tcp_ip, counter):
         # init the TCP socket
         server_address = (tcp_ip, int(tcp_port))
         tcp_client_socket = socket(AF_INET, SOCK_STREAM)
         try:
+            to_continue = True
             tcp_client_socket.connect(server_address)
         except:
             time.sleep(0.5)
             self.udp_part(counter + 1)
-        # send team name
-        tcp_client_socket.send(str.encode("FSM\n"))
-        try:
-            message = tcp_client_socket.recv(self.buffer_size)
-        except:
-            time.sleep(0.5)
-            self.udp_part(counter + 1)
-        message = message.decode("utf-8")
-        print(message)
+            to_continue = False
+        if to_continue:
+            # send team name
+            tcp_client_socket.send(str.encode("FSM\n"))
+            message = ""
+            try:
+                message = tcp_client_socket.recv(self.buffer_size)
+            except:
+                time.sleep(0.5)
+                self.udp_part(counter + 1)
+                to_continue = False
+            if to_continue:
+                message = message.decode("utf-8")
+                print(message)
 
-        # start the game !!!
-        future = time.time() + 10
-        while future > time.time():
-            tcp_client_socket.send(str.encode(getch()))
+                # start the game !!!
+                future = time.time() + 10
+                while future > time.time():
+                    tcp_client_socket.send(str.encode(getch()))
 
-        # recv end message
-        message = tcp_client_socket.recv(self.buffer_size)
-        message = message.decode("utf-8")
-        print(message)
-        self.udp_part(0)
+                # recv end message
+                message = tcp_client_socket.recv(self.buffer_size)
+                message = message.decode("utf-8")
+                print(message)
+                self.udp_part(0)
 
 
 c1 = Client("<broadcast>")
