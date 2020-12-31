@@ -42,15 +42,16 @@ class Server:
         self.tcp_port = 8473
         self.best_team = ("None", 0)
         self.lock_best_team = threading.Lock()
-        self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
-        self.end_message_part2 = "\nGroup {} wins!\n" + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
-        self.end_message_draw = "\nIt's a draw!\n" + Colors.CYELLOW + "Congratulations to both teams!!!" + Colors.CEND
+        self.end_message = ""
+        self.end_message_part2 = ""
+        self.end_message_draw = ""
 
     def tcp_main_listener(self):  # TCP and game session
         condition = threading.Condition()
         all_threads = []
-
+        # creat socket
         tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # create socket
+        tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         tcp_server_socket.bind(('', 0))
         self.tcp_port = tcp_server_socket.getsockname()[1]
@@ -66,6 +67,7 @@ class Server:
                 thread_funk.start()
                 all_threads.append(thread_funk)  # to be aware of every connected client
             except:
+                # updating time out
                 if self.time_to_connect - time.time() + start_time > 0:
                     tcp_server_socket.settimeout(self.time_to_connect - time.time() + start_time)
                 continue
@@ -108,7 +110,7 @@ class Server:
         for my_tread in all_threads:
             my_tread.join()  # we want all clients to end the game session before ending it on the server side
         print(Colors.CRED + "Game over, sending out offer requests..." + Colors.CEND)
-        self.main_server()  # next ssession
+        self.main_server()  # next game
 
     # handles the inputs from clients
     def handle_client(self, connected_socket, cv):
@@ -126,13 +128,13 @@ class Server:
             cv.wait()  # blocks every client until all are ready
         chars = []  # inputs of clients in the game in list form
         try:
-            connected_socket.send(str.encode(self.message_to_send_at_begin))  # send message at beggining of game
+            connected_socket.send(str.encode(self.message_to_send_at_begin))  # send message at beginning of game
         except:
             print("error")
         connected_socket.settimeout(10)
         start_time = time.time()
         future = time.time() + 10
-        while future > time.time():  # recieve inputs while game is running
+        while future > time.time():  # receive inputs while game is running
             try:
                 ch = connected_socket.recv(1024)
             except:
@@ -144,9 +146,9 @@ class Server:
         for lst in chars:
             for c in lst:
                 if c in dict_chars:
-                    dict_chars[c] += 1  # count occurences of char and saves it
+                    dict_chars[c] += 1  # count if the same char
                 else:
-                    dict_chars[c] = 1  # count occurences of char and saves it
+                    dict_chars[c] = 1  # count if the same char
         self.all_teams[message] = dict_chars
         if dict_chars == {}:
             max_char = "None"
@@ -201,8 +203,10 @@ class Server:
         self.team2 = []
         self.team1_points = 0
         self.team2_points = 0
-        self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
-        self.end_message_part2 = Colors.CVIOLET + "\nGroup {} wins!\n" + Colors.CEND + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
+        self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters"
+        self.end_message += ".\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
+        self.end_message_part2 = Colors.CVIOLET + "\nGroup {} wins!\n" + Colors.CEND + Colors.CYELLOW
+        self.end_message_part2 += "Congratulations to the winners:\n==\n==" + Colors.CEND
         self.end_message_draw = Colors.CYELLOW + "\nIt's a draw!\n" + "Congratulations to both teams!!!" + Colors.CEND
         client_handler = threading.Thread(target=self.tcp_main_listener)
         client_handler.start()
