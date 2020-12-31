@@ -1,7 +1,6 @@
 from socket import *
 import time
 import struct
-from server import Colors
 
 
 # funk from the web to get chat from user
@@ -28,27 +27,22 @@ class Client:
         self.ip = ip
         self.buffer_size = 1024
 
-    def udp_part(self):
-        server_address_port = (self.ip, 13117)
-        print(Colors.CBLUE + "Client started, listening for offer requests..." + Colors.CEND)
+    def udp_part(self, counter):
+        server_address_port = (self.ip, 13217)
+        print("Client started, listening for offer requests...")
 
         # init the UDP socket
         udp_client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
         udp_client_socket.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
         udp_client_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        did_bind = False
-
         # wait for some connection
-        while not did_bind:
-            try:
-                time.sleep(0.1)
-                udp_client_socket.bind(server_address_port)
-                did_bind = True
-            except:
-                print("error")
+        try:
+            udp_client_socket.bind(server_address_port)
+        except:
+            time.sleep(0.5)
+            self.udp_part(counter + 1)
         receive_message, server_address = udp_client_socket.recvfrom(self.buffer_size)
-        print(
-            Colors.CYELLOW + "Received offer from {} attempting to connect...".format(server_address[0] + Colors.CEND))
+        print("Received offer from {} attempting to connect...".format(server_address[0]))
 
         # organize recv data
         tcp_ip = server_address[0]
@@ -58,24 +52,24 @@ class Client:
         tcp_port = int(tcp_port, 16)
 
         if magic_cookie == '0xfeedbeef':
-            self.tcp_part(tcp_port, tcp_ip)
+            self.tcp_part(tcp_port, tcp_ip, counter)
 
-    def tcp_part(self, tcp_port, tcp_ip):
+    def tcp_part(self, tcp_port, tcp_ip, counter):
         # init the TCP socket
         server_address = (tcp_ip, int(tcp_port))
         tcp_client_socket = socket(AF_INET, SOCK_STREAM)
-        did_connect = False
-        # wait for some connection
-        while not did_connect:
-            try:
-                time.sleep(0.1)
-                tcp_client_socket.connect(server_address)
-                did_connect = True
-            except:
-                continue
+        try:
+            tcp_client_socket.connect(server_address)
+        except:
+            time.sleep(0.5)
+            self.udp_part(counter + 1)
         # send team name
         tcp_client_socket.send(str.encode("FSM\n"))
-        message = tcp_client_socket.recv(self.buffer_size)
+        try:
+            message = tcp_client_socket.recv(self.buffer_size)
+        except:
+            time.sleep(0.5)
+            self.udp_part(counter + 1)
         message = message.decode("utf-8")
         print(message)
 
@@ -88,8 +82,8 @@ class Client:
         message = tcp_client_socket.recv(self.buffer_size)
         message = message.decode("utf-8")
         print(message)
-        self.udp_part()
+        self.udp_part(0)
 
 
 c1 = Client("<broadcast>")
-c1.udp_part()
+c1.udp_part(0)

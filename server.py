@@ -52,14 +52,7 @@ class Server:
 
         tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # create socket
         tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        did_bind = False
-        while not did_bind:
-            try:  # attemptint to bind the socket with a port
-                time.sleep(0.1)
-                tcp_server_socket.bind(('', 0))
-                did_bind = True
-            except:
-                print("error")
+        tcp_server_socket.bind(('', 0))
         self.tcp_port = tcp_server_socket.getsockname()[1]
         tcp_server_socket.settimeout(self.time_to_connect)
         tcp_server_socket.listen(17)
@@ -81,13 +74,13 @@ class Server:
         shuffle(all_teams_lst)  # randomize team layout
         self.team1 = all_teams_lst[:len(all_teams_lst) // 2]
         self.team2 = all_teams_lst[len(all_teams_lst) // 2:]
-        self.message_to_send_at_begin = Colors.CVIOLET + "Welcome to Keyboard Spamming Battle Royale.\n" + Colors.CEND + Colors.CGREEN + "Group 1:\n" + Colors.CEND
+        self.message_to_send_at_begin = Colors.CYELLOW + "Welcome to Keyboard Spamming Battle Royale.\n" + Colors.CEND + Colors.CGREEN + "Group 1:\n"
         for player_name in self.team1:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += Colors.CBLUE + "\nGroup 2:\n" + Colors.CEND
+        self.message_to_send_at_begin += Colors.CEND + Colors.CBLUE + "\nGroup 2:\n"
         for player_name in self.team2:
             self.message_to_send_at_begin += player_name + "\n"
-        self.message_to_send_at_begin += Colors.CYELLOW + "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!" + Colors.CEND
+        self.message_to_send_at_begin += Colors.CEND + Colors.CYELLOW + "Start pressing keys on your keyboard as fast as you can!!\nGO GO GO!!!" + Colors.CEND
 
         with condition:
             condition.notifyAll()  # notifies all the clients of the games' start
@@ -107,7 +100,7 @@ class Server:
             winner_team = self.team2
         if winner_team is not None:
             for name in winner_team:
-                self.end_message += "\n" + name
+                self.end_message += Colors.CVIOLET + "\n" + name + Colors.CEND
 
         print(self.end_message)
         with condition:
@@ -125,9 +118,9 @@ class Server:
         except:
             print("error")
         message = message.decode("utf-8")
-        if message in self.all_teams:
-            message = message[:-1] + str(len(self.all_teams))
         message = message[:-1]
+        if message in self.all_teams:
+            message += str(len(self.all_teams))
         self.all_teams[message] = {}
         with cv:
             cv.wait()  # blocks every client until all are ready
@@ -165,10 +158,10 @@ class Server:
         self.lock_best_team.release()
         with cv:
             cv.wait()
-        # some statistics and fun facts
-        to_send = self.end_message + "\nYour most common char is - " + max_char
+        # some statistics and fun facts Colors.CVIOLET + "\n" + name + Colors.CEND
+        to_send = self.end_message + Colors.CVIOLET + "\nYour most common char is - " + max_char
         to_send += "\nThe beat team ever on this server is {} with {} points\n".format(self.best_team[0],
-                                                                                       self.best_team[1])
+                                                                                       self.best_team[1]) + Colors.CEND
         try:
             connected_socket.send(str.encode(to_send))
         except:
@@ -196,10 +189,10 @@ class Server:
 
         count_time = 0
         while count_time < self.time_to_connect:  # send broadcasts until time limit
-            udp_server_socket.sendto(message, (self.ip, 13117))
+            udp_server_socket.sendto(message, (self.ip, 13217))
             time.sleep(1)
             count_time += 1
-        print("No more players for know")
+        print("No more players for this game")
 
     def main_server(self):  # initialize the environment for the game
         self.all_teams = {}
@@ -209,8 +202,8 @@ class Server:
         self.team1_points = 0
         self.team2_points = 0
         self.end_message = Colors.CRED + "Game over!\n" + Colors.CEND + Colors.CGREEN + "Group 1 typed in {} characters.\n" + Colors.CEND + Colors.CBLUE + "Group 2 typed in {} characters." + Colors.CEND
-        self.end_message_part2 = "\nGroup {} wins!\n" + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
-        self.end_message_draw = "\nIt's a draw!\n" + Colors.CYELLOW + "Congratulations to both teams!!!" + Colors.CEND
+        self.end_message_part2 = Colors.CVIOLET + "\nGroup {} wins!\n" + Colors.CEND + Colors.CYELLOW + "Congratulations to the winners:\n==\n==" + Colors.CEND
+        self.end_message_draw = Colors.CYELLOW + "\nIt's a draw!\n" + "Congratulations to both teams!!!" + Colors.CEND
         client_handler = threading.Thread(target=self.tcp_main_listener)
         client_handler.start()
         client_handler2 = threading.Thread(target=self.udp_server)
