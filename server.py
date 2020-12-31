@@ -123,6 +123,7 @@ class Server:
         message = message[:-1]
         if message in self.all_teams:
             message += str(len(self.all_teams))
+        print(message, " is connected")
         self.all_teams[message] = {}
         with cv:
             cv.wait()  # blocks every client until all are ready
@@ -141,7 +142,11 @@ class Server:
                 continue
             chars.append(list(ch.decode("utf-8")))
             time_pass = time.time() - start_time
-            connected_socket.settimeout(10 - time_pass)
+            try:
+                if time_pass > 0:
+                    connected_socket.settimeout(10 - time_pass)
+            except:
+                continue
         dict_chars = {}
         for lst in chars:
             for c in lst:
@@ -214,5 +219,8 @@ class Server:
         client_handler2.start()
 
 
-s1 = Server("<broadcast>")
+eth1 = "172.1.0.24"
+eth2 = "172.99.0.24"
+broadcast_ip = "<broadcast>"
+s1 = Server(broadcast_ip)
 s1.main_server()
